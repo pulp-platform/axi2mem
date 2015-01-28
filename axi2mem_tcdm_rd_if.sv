@@ -113,13 +113,15 @@ module axi2mem_tcdm_rd_if
      begin
 	
 	tcdm_req_o       = '0;
-	trans_gnt_o       = '0;
+	tcdm_be_o        = '0;
+	trans_gnt_o      = '0;
 	s_push_req       = '0;
 	
 	begin
 	   if ( trans_req_i == 1'b1 && s_trans_stalled == 1'b0 ) // REQUEST FROM COMMAND QUEUE && RX OPERATION && TX BUFFER AVAILABLE
 	     begin
 		tcdm_req_o = 1'b1;
+		tcdm_be_o  = '1;
 		if ( tcdm_gnt_i == 1'b1 ) // THE TRANSACTION IS GRANTED FROM THE TCDM
 		  begin
 		     trans_gnt_o  = 1'b1;
@@ -242,7 +244,6 @@ module axi2mem_tcdm_rd_if
    //**********************************************************
    
    assign tcdm_add_o   = trans_add_i;
-   assign tcdm_be_o    = 4'b1111;
    assign tcdm_we_o    = 1'b1;
    assign tcdm_wdata_o = '0;
    

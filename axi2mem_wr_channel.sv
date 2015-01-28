@@ -95,7 +95,7 @@ module axi2mem_wr_channel
 	     if ( axi_slave_aw_valid_i == 1'b1 && axi_slave_aw_ready_o == 1'b1 )
 	       begin
 		  s_axi_slave_aw_len  <= axi_slave_aw_len_i;
-		  s_axi_slave_aw_addr <= axi_slave_aw_addr_i;
+		  s_axi_slave_aw_addr <= {axi_slave_aw_addr_i[AXI_ADDR_WIDTH-1:3],3'b000};
 	       end
 	  end
      end
@@ -167,8 +167,8 @@ module axi2mem_wr_channel
 		    trans_req_o[0] = 1'b1;
 		    trans_req_o[1] = 1'b1;
 		    
-		    trans_add_o[0] = axi_slave_aw_addr_i;
-		    trans_add_o[1] = axi_slave_aw_addr_i + 4;
+		    trans_add_o[0] = {axi_slave_aw_addr_i[AXI_ADDR_WIDTH-1:3],3'b000};
+		    trans_add_o[1] = {axi_slave_aw_addr_i[AXI_ADDR_WIDTH-1:3],3'b000} + 4;
 		    
 		    data_req_o     = 1'b1;
 		    
@@ -247,7 +247,7 @@ module axi2mem_wr_channel
    //**********************************************************
    //**************** RESPONSE CHANNEL ************************
    //**********************************************************
-
+   
    //**********************************************************
    //**************** FIFO TO STORE R_ID **********************
    //**********************************************************

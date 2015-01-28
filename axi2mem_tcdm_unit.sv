@@ -213,6 +213,7 @@ module axi2mem_tcdm_unit
 	      .synch_id_o(s_synch_wr_id[i]),
 	      
 	      .data_dat_i(data_wr_dat_i[i]),
+	      .data_strb_i(data_wr_strb_i[i]),
 	      .data_req_o(data_wr_req_o[i]),
 	      .data_gnt_i(data_wr_gnt_i[i]),
 	      
@@ -231,7 +232,7 @@ module axi2mem_tcdm_unit
 	end
       
    endgenerate
-      
+   
    //**********************************************************
    //*************** TCDM SYNCH WR ****************************
    //**********************************************************

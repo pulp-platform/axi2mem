@@ -15,7 +15,7 @@
 // Project Name:   ULPSoC                                                     //
 // Language:       SystemVerilog                                              //
 //                                                                            //
-// Description:    MINI DMA CHANNEL - TCDM INTERFACE                          //
+// Description:    AXI2MEM                                                    //
 //                                                                            //
 //                                                                            //
 // Revision:                                                                  //
@@ -50,6 +50,7 @@ module axi2mem_tcdm_wr_if
    // RX DATA INTERFACE
    //***************************************
    input  logic [31:0] data_dat_i,
+   input  logic [3:0]  data_strb_i,
    output logic        data_req_o,
    input  logic        data_gnt_i,
    
@@ -76,21 +77,31 @@ module axi2mem_tcdm_wr_if
      begin
 	
 	data_req_o    = '0;
-	tcdm_req_o       = '0;
-	trans_gnt_o       = '0;
-	synch_req_o      = '0;
-	synch_id_o      = '0;
+	tcdm_req_o    = '0;
+	trans_gnt_o   = '0;
+	synch_req_o   = '0;
+	synch_id_o    = '0;
 	
 	begin
 	   if ( trans_req_i == 1'b1 && data_gnt_i == 1'b1 ) // RX OPERATION && REQUEST FROM COMMAND QUEUE && RX BUFFER AVAILABLE
 	     begin
-		tcdm_req_o = 1'b1;
-		if ( tcdm_gnt_i == 1'b1 ) // THE TRANSACTION IS GRANTED FROM THE TCDM
+		if ( | data_strb_i ) // AT LEAST ONE LANE IS ACTIVATED TO WRITE INTO TCDM
+		  begin
+		     tcdm_req_o = 1'b1;
+		     if ( tcdm_gnt_i == 1'b1 ) // THE TRANSACTION IS GRANTED FROM THE TCDM
+		       begin
+			  synch_req_o   = trans_last_i;
+			  synch_id_o    = trans_id_i;
+			  trans_gnt_o   = 1'b1;
+			  data_req_o    = 1'b1;
+		       end
+		  end
+		else
 		  begin
 		     synch_req_o   = trans_last_i;
 		     synch_id_o    = trans_id_i;
-		     trans_gnt_o    = 1'b1;
-		     data_req_o = 1'b1;
+		     trans_gnt_o   = 1'b1;
+		     data_req_o    = 1'b1;
 		  end
 	     end
 	end
@@ -101,7 +112,7 @@ module axi2mem_tcdm_wr_if
    //**********************************************************
    
    assign tcdm_add_o   = trans_add_i;
-   assign tcdm_be_o    = 4'b1111;
+   assign tcdm_be_o    = data_strb_i;
    assign tcdm_we_o    = 1'b0;
    assign tcdm_wdata_o = data_dat_i;
    

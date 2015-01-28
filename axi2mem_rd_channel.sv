@@ -87,7 +87,7 @@ module axi2mem_rd_channel
 	     if ( axi_slave_ar_valid_i == 1'b1 && axi_slave_ar_ready_o == 1'b1 )
 	       begin
 		  s_axi_slave_ar_len  <= axi_slave_ar_len_i;
-		  s_axi_slave_ar_addr <= axi_slave_ar_addr_i;
+		  s_axi_slave_ar_addr <= {axi_slave_ar_addr_i[AXI_ADDR_WIDTH-1:3],3'b000};
 	       end
 	  end
      end
@@ -156,8 +156,8 @@ module axi2mem_rd_channel
 		    trans_req_o[0] = 1'b1;
 		    trans_req_o[1] = 1'b1;
 		    
-		    trans_add_o[0] = axi_slave_ar_addr_i;
-		    trans_add_o[1] = axi_slave_ar_addr_i + 4;
+		    trans_add_o[0] = {axi_slave_ar_addr_i[AXI_ADDR_WIDTH-1:3],3'b000};
+		    trans_add_o[1] = {axi_slave_ar_addr_i[AXI_ADDR_WIDTH-1:3],3'b000} + 4;
 		    
 		    if ( axi_slave_ar_len_i == 1'b0 ) // SINGLE BEAT TRANSACTION
 		      begin
