@@ -47,7 +47,7 @@ module axi2mem_tcdm_synch
    logic 		   s_synch_gnt;
    logic [1:0][5:0] 	   s_synch_id;
    
-   genvar 	      i;
+   genvar 		   i;
    
    generate
       

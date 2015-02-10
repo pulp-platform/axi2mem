@@ -77,6 +77,8 @@ module axi2mem_wr_channel
    logic 			      s_trans_complete;
 
    logic [AXI_ID_WIDTH-1:0]	      s_axi_slave_b_id;
+
+   logic 			      s_ready_id;
    
    //**********************************************************
    //********************* REQUEST CHANNEL ********************
@@ -157,9 +159,10 @@ module axi2mem_wr_channel
 	  TRANS_IDLE:
 	    
 	    begin
-	       if ( axi_slave_aw_valid_i == 1'b1 &&                     // REQUEST FROM WRITE ADDRESS CHANNEL
-		    axi_slave_w_valid_i == 1'b1 &&                      // REQUEST FROM WRITE DATA CHANNEL
-		    trans_gnt_i[0] == 1'b1 &&  trans_gnt_i[1] == 1'b1 ) // TCDM CMD QUEUE IS AVAILABLE
+	       if ( axi_slave_aw_valid_i == 1'b1 &&                      // REQUEST FROM WRITE ADDRESS CHANNEL
+		    axi_slave_w_valid_i == 1'b1 &&                       // REQUEST FROM WRITE DATA CHANNEL
+		    trans_gnt_i[0] == 1'b1 &&  trans_gnt_i[1] == 1'b1 && // TCDM CMD QUEUE IS AVAILABLE
+		    s_ready_id == 1'b1 )                                 // THE ID FIFO CAN ACCEPT NEW ID
 		 begin
 		    
 		    axi_slave_aw_ready_o = 1'b1;
@@ -251,12 +254,11 @@ module axi2mem_wr_channel
    //**********************************************************
    //**************** FIFO TO STORE R_ID **********************
    //**********************************************************
-   // DECOUPLES REQUEST AND RESPONSE CHANNEL
-   // MUST BE THE SAME DEPTH AS THE CMD QUEUE --> 2 ENTRIES
    
    axi2mem_buffer
      #(
-       .DATA_WIDTH(AXI_ID_WIDTH)
+       .DATA_WIDTH(AXI_ID_WIDTH),
+       .BUFFER_DEPTH(4)
        )
    r_id_buf_i
      (
@@ -267,9 +269,9 @@ module axi2mem_wr_channel
       .data_o(s_axi_slave_b_id),
       .ready_i(axi_slave_b_valid_o == 1'b1 && axi_slave_b_ready_i == 1'b1),
       
-      .valid_i(axi_slave_aw_valid_i == 1'b1 && axi_slave_aw_ready_o == 1'b1), 
+      .valid_i(axi_slave_aw_valid_i == 1'b1 && axi_slave_aw_ready_o == 1'b1),
       .data_i(axi_slave_aw_id_i),
-      .ready_o()
+      .ready_o(s_ready_id)
       );
    
    assign axi_slave_b_valid_o = trans_r_req_i;

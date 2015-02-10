@@ -68,7 +68,7 @@ module axi2mem_rd_channel
    logic [31:0] 			   s_trans_addr;
    logic 				   s_trans_complete;
    
-   logic 				   s_read_id;
+   logic                                   s_ready_id;
    
    //**********************************************************
    //********************* REQUEST CHANNEL ********************
@@ -147,8 +147,9 @@ module axi2mem_rd_channel
 	  TRANS_IDLE:
 	    
 	    begin
-	       if ( axi_slave_ar_valid_i == 1'b1 && 
-		    trans_gnt_i[0] == 1'b1 &&  trans_gnt_i[1] == 1'b1 ) // REQUEST FROM READ ADDRESS CHANNEL
+	       if ( axi_slave_ar_valid_i == 1'b1 &&                      // REQUEST FROM READ ADDRESS CHANNEL
+		    trans_gnt_i[0] == 1'b1 &&  trans_gnt_i[1] == 1'b1 && // TCDM CMD QUEUE IS AVAILABLE
+		    s_ready_id == 1'b1 )                                 
 		 begin
 		    
 		    axi_slave_ar_ready_o = 1'b1;
@@ -233,10 +234,10 @@ module axi2mem_rd_channel
 	axi_slave_r_valid_o = 1'b0;
 	axi_slave_r_last_o  = 1'b0;
 	
-	if ( data_gnt_i == 1'b1 &&         // DATA IS AVAILABLE ON THE DATA FIFO
-	     axi_slave_r_ready_i == 1'b1 ) // THE AXI INTERFACE IS ABLE TO ACCETT A DATA
+	if ( data_gnt_i == 1'b1 &&          // DATA IS AVAILABLE ON THE DATA FIFO
+	     axi_slave_r_ready_i == 1'b1 )  // THE AXI INTERFACE IS ABLE TO ACCETT A DATA
+	  
 	  begin
-	     
 	     if ( data_last_i == 1'b1 ) // LAST BEAT
 	       begin
 		  data_req_o          = 1'b1;
@@ -261,11 +262,11 @@ module axi2mem_rd_channel
    //**********************************************************
    //**************** FIFO TO STORE R_ID **********************
    //**********************************************************
-   // NO VALID AND READY --> ONLY ONE PENDING TRANSACTION
    
    axi2mem_buffer
      #(
-       .DATA_WIDTH(AXI_ID_WIDTH)
+       .DATA_WIDTH(AXI_ID_WIDTH),
+       .BUFFER_DEPTH(4)
        )
    r_id_buf_i
      (
@@ -276,9 +277,9 @@ module axi2mem_rd_channel
       .data_o(s_axi_slave_ar_id),
       .ready_i(axi_slave_r_last_o),
       
-      .valid_i(axi_slave_ar_valid_i == 1'b1 && axi_slave_ar_ready_o == 1'b1), 
+      .valid_i(axi_slave_ar_valid_i == 1'b1 && axi_slave_ar_ready_o == 1'b1),
       .data_i(axi_slave_ar_id_i),
-      .ready_o()
+      .ready_o(s_ready_id)
       );
    
    assign axi_slave_r_data_o  = data_dat_i;
