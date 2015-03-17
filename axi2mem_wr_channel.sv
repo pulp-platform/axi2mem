@@ -106,10 +106,10 @@ module axi2mem_wr_channel
    always_ff @ (posedge clk_i, negedge rst_ni)
      begin
 	if(rst_ni == 1'b0)
-	  s_trans_count <= 12'b0;
+	  s_trans_count <= '0;
 	else
 	  if ( trans_req_o == 2'b11 && trans_gnt_i == 2'b11 && s_start_count == 1'b1 )
-	    s_trans_count <= 12'b0;
+	    s_trans_count <= '0;
 	  else
 	    if ( trans_req_o == 2'b11 && trans_gnt_i == 2'b11 )
 	      s_trans_count <= s_trans_count+1;

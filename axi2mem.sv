@@ -83,7 +83,10 @@ module axi2mem
     
     // RESPONSE CHANNEL
     input  logic [3:0]                tcdm_master_r_valid_i,
-    input  logic [3:0][31:0]          tcdm_master_r_data_i
+    input  logic [3:0][31:0]          tcdm_master_r_data_i,
+
+    // BUSY SIGNAL
+    output logic                      busy_o
     );
    
    // SIGNAL DECLARATION
@@ -343,6 +346,33 @@ module axi2mem
       .data_rd_gnt_i(s_rd_data_push_gnt)
       
       );
+   
+   //**********************************************************
+   //*************** BUSY UNIT ********************************
+   //**********************************************************
+   
+   axi2mem_busy_unit busy_unit_i
+     (
+      
+      .clk_i(clk_i),
+      .rst_ni(rst_ni),
+      
+      // WRITE INTERFACE
+      .aw_sync_i(s_aw_valid & s_aw_ready),
+      .b_sync_i(s_b_valid & s_b_ready),
+      
+      // READ INTERFACE
+      .ar_sync_i(s_ar_valid & s_ar_ready),
+      .r_sync_i(s_r_valid & s_r_ready & s_r_last),
+      
+      // BUSY SIGNAL
+      .busy_o(busy_o)
+      
+      );
+   
+   //**********************************************************
+   //*************** AXI BUFFERS ******************************
+   //**********************************************************
    
    // AXI WRITE ADDRESS CHANNEL BUFFER
    axi2mem_aw_buffer
