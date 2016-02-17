@@ -1,4 +1,7 @@
 axi2mem:
+  incdirs: [
+    .,
+  ]
   files: [
     axi2mem_ar_buffer.sv,
     axi2mem_aw_buffer.sv,
