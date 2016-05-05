@@ -29,56 +29,50 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 module axi2mem_tcdm_synch
-  (
-   
+(
    input  logic            clk_i,
    input  logic            rst_ni,
-   
+   input  logic            test_en_i,
+
    input  logic [1:0]      synch_req_i,
    input  logic [1:0][5:0] synch_id_i,
-   
+
    input  logic            synch_gnt_i,
    output logic            synch_req_o,
    output logic [5:0]      synch_id_o
+);
+
+   logic [1:0]             s_synch_req;
+   logic                   s_synch_gnt;
+   logic [1:0][5:0]        s_synch_id;
    
-   );
-   
-   logic [1:0] 		   s_synch_req;
-   logic 		   s_synch_gnt;
-   logic [1:0][5:0] 	   s_synch_id;
-   
-   genvar 		   i;
-   
+   genvar  i;
    generate
-      
       for (i=0; i<2; i++)
-	
-	begin : synch
-	   
-	   axi2mem_buffer
-	     #(
-	       .DATA_WIDTH(6),
-	       .BUFFER_DEPTH(2) // IMPORTANT: DATA DEPTH MUST BE THE SAME AS CMD QUEUE DATA DEPTH
-	       )
-	   synch_i
-	     (
-	      
-	      .clk_i(clk_i),
-	      .rst_ni(rst_ni),
-	      
-	      .data_i(synch_id_i[i]),
-	      .valid_i(synch_req_i[i]),
-	      .ready_o(),
-	      
-	      .data_o(s_synch_id[i]),
-	      .valid_o(s_synch_req[i]),
-	      .ready_i(s_synch_gnt && synch_gnt_i)
-	      
-	      );
-	   
-	end
-      
+      begin : synch
+         generic_fifo
+         #(
+            .DATA_WIDTH   ( 6                           ),
+            .DATA_DEPTH   ( 2                           ) // IMPORTANT: DATA DEPTH MUST BE THE SAME AS CMD QUEUE DATA DEPTH
+         )
+         synch_i
+         (
+            .clk          ( clk_i                       ),
+            .rst_n        ( rst_ni                      ),
+            .test_mode_i  ( test_en_i                   ),
+
+            .data_i       ( synch_id_i[i]               ),
+            .valid_i      ( synch_req_i[i]              ),
+            .grant_o      (                             ),
+
+            .data_o       ( s_synch_id[i]               ),
+            .valid_o      ( s_synch_req[i]              ),
+            .grant_i      ( s_synch_gnt && synch_gnt_i  )
+         );
+      end
    endgenerate
+
+
    
    assign s_synch_gnt = s_synch_req[0] & s_synch_req[1];
    

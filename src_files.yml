@@ -1,15 +1,6 @@
 axi2mem:
-  incdirs: [
-    .,
-  ]
   files: [
-    axi2mem_ar_buffer.sv,
-    axi2mem_aw_buffer.sv,
-    axi2mem_b_buffer.sv,
-    axi2mem_buffer.sv,
     axi2mem_busy_unit.sv,
-    axi2mem_parameters.sv,
-    axi2mem_r_buffer.sv,
     axi2mem_rd_channel.sv,
     axi2mem.sv,
     axi2mem_tcdm_rd_if.sv,
@@ -17,6 +8,5 @@ axi2mem:
     axi2mem_tcdm_unit.sv,
     axi2mem_tcdm_wr_if.sv,
     axi2mem_trans_unit.sv,
-    axi2mem_w_buffer.sv,
     axi2mem_wr_channel.sv,
   ]

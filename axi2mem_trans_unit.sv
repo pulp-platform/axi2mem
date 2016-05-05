@@ -36,6 +36,7 @@ module axi2mem_trans_unit
 (
     input  logic             clk_i,
     input  logic             rst_ni,
+    input  logic             test_en_i,
 
     // TCDM SIDE
     input  logic [1:0][31:0] rd_data_push_dat_i,
@@ -75,29 +76,31 @@ module axi2mem_trans_unit
 
    logic                     s_rd_last_pop_req;
    logic                     s_rd_last_pop_gnt;
-   genvar                      i;
+   genvar                    i;
 
    //**********************************************************
    //*************** RD LAST BUFFER ***************************
    //**********************************************************
-
-   axi2mem_buffer
+   generic_fifo
    #(
        .DATA_WIDTH(1),
-       .BUFFER_DEPTH(7)
+       .DATA_DEPTH(7)
    )
    last_buffer_i
    (
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      .data_i({rd_data_push_last_i}),
-      .valid_i(rd_data_push_req_i[0]),
-      .ready_o(),
+      .clk           ( clk_i                  ),
+      .rst_n         ( rst_ni                 ),
+      .test_mode_i   ( test_en_i              ),
 
-      .data_o(rd_data_pop_last_o),
-      .ready_i(s_rd_last_pop_req),
-      .valid_o(s_rd_last_pop_gnt)
+      .data_i        ( {rd_data_push_last_i}  ),
+      .valid_i       ( rd_data_push_req_i[0]  ),
+      .grant_o       (                        ),
+
+      .data_o        ( rd_data_pop_last_o     ),
+      .grant_i       ( s_rd_last_pop_req      ),
+      .valid_o       ( s_rd_last_pop_gnt      )
    );
+
 
    //**********************************************************
    //*************** RD BUFFER ********************************
@@ -108,22 +111,23 @@ module axi2mem_trans_unit
       for (i=0; i<2; i++)
       begin : rd_buffer
 
-           axi2mem_buffer
+           generic_fifo
            #(
                .DATA_WIDTH(32),
-               .BUFFER_DEPTH(2)
+               .DATA_DEPTH(2)
            )
            rd_buffer_i
            (
-              .clk_i(clk_i),
-              .rst_ni(rst_ni),
+              .clk(clk_i),
+              .rst_n(rst_ni),
+              .test_mode_i(test_en_i),
 
               .data_i(rd_data_push_dat_i[i]),
               .valid_i(rd_data_push_req_i[i]),
-              .ready_o(rd_data_push_gnt_o[i]),
+              .grant_o(rd_data_push_gnt_o[i]),
 
               .data_o(s_rd_data_pop_dat[i]),
-              .ready_i(s_rd_data_pop_req[i]),
+              .grant_i(s_rd_data_pop_req[i]),
               .valid_o(s_rd_data_pop_gnt[i])
            );
       end
@@ -138,23 +142,23 @@ module axi2mem_trans_unit
 
       for (i=0; i<2; i++)
       begin : wr_buffer
-
-           axi2mem_buffer
+           generic_fifo
            #(
                .DATA_WIDTH(36),
-               .BUFFER_DEPTH(2)
+               .DATA_DEPTH(2)
            )
            wr_buffer_i
            (
-              .clk_i(clk_i),
-              .rst_ni(rst_ni),
+              .clk(clk_i),
+              .rst_n(rst_ni),
+              .test_mode_i(test_en_i),
 
               .data_i({s_wr_data_push_strb[i],s_wr_data_push_dat[i]}),
               .valid_i(s_wr_data_push_req[i]),
-              .ready_o(s_wr_data_push_gnt[i]),
+              .grant_o(s_wr_data_push_gnt[i]),
 
               .data_o({wr_data_pop_strb_o[i],wr_data_pop_dat_o[i]}),
-              .ready_i(wr_data_pop_req_i[i]),
+              .grant_i(wr_data_pop_req_i[i]),
               .valid_o(wr_data_pop_gnt_o[i])
            );
       end

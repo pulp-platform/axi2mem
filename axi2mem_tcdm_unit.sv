@@ -1,9 +1,10 @@
 
 module axi2mem_tcdm_unit
-  (
-   
+(
+
    input  logic             clk_i,
    input  logic             rst_ni,
+   input  logic             test_en_i,
    
    // EXTERNAL INITIATOR
    //***************************************
@@ -15,7 +16,7 @@ module axi2mem_tcdm_unit
    input  logic [3:0]       tcdm_gnt_i,
    
    input  logic [3:0][31:0] tcdm_r_rdata_i,
-   input  logic	[3:0]       tcdm_r_valid_i,
+   input  logic [3:0]       tcdm_r_valid_i,
    
    // RD CMD INTERFACE
    //***************************************
@@ -53,57 +54,54 @@ module axi2mem_tcdm_unit
    input  logic [1:0][3:0]  data_wr_strb_i,
    output logic [1:0]       data_wr_req_o,
    input  logic [1:0]       data_wr_gnt_i
+);
    
-   );
+   logic [1:0][31:0]        s_trans_rd_add,s_trans_wr_add;
+   logic [1:0][5:0]         s_trans_rd_id,s_trans_wr_id;
+   logic [1:0]              s_trans_rd_req,s_trans_wr_req;
+   logic [1:0]              s_trans_rd_gnt,s_trans_wr_gnt;
+   logic [1:0]              s_trans_rd_last,s_trans_wr_last;
    
-   logic [1:0][31:0] 	    s_trans_rd_add,s_trans_wr_add;
-   logic [1:0][5:0] 	    s_trans_rd_id,s_trans_wr_id;
-   logic [1:0] 		    s_trans_rd_req,s_trans_wr_req;
-   logic [1:0] 		    s_trans_rd_gnt,s_trans_wr_gnt;
-   logic [1:0] 		    s_trans_rd_last,s_trans_wr_last;
-   
-   logic [1:0] 		    s_synch_wr_req;
-   logic [1:0][5:0] 	    s_synch_wr_id;
+   logic [1:0]              s_synch_wr_req;
+   logic [1:0][5:0]         s_synch_wr_id;
    
    logic [1:0]              s_data_rd_last;
    logic [1:0][5:0]         s_data_rd_id;
    
-   genvar 	     i;
+   genvar            i;
    
    //**********************************************************
    //*************** TCDM TRANS QUEUE RD **********************
    //**********************************************************
    
    generate
-      
       for (i=0; i<2; i++)
-	
-	begin : tcdm_rd_queue
-	   
-	   axi2mem_buffer
-	     #(
-	       .DATA_WIDTH(39),
-	       .BUFFER_DEPTH(2)
-	       )
-	   tcdm_rd_queue_i
-	     (
-	      
-	      .clk_i(clk_i),
-	      .rst_ni(rst_ni),
-	      
-	      .data_i({trans_rd_id_i[i],trans_rd_last_i[i],trans_rd_add_i[i]}),
-	      .valid_i(trans_rd_req_i[i]),
-	      .ready_o(trans_rd_gnt_o[i]),
-	      
-	      .data_o({s_trans_rd_id[i],s_trans_rd_last[i],s_trans_rd_add[i]}),
-	      .ready_i(s_trans_rd_gnt[i]),
-	      .valid_o(s_trans_rd_req[i])
-	      
-	      );
-	   
-	end
-      
+      begin : tcdm_rd_queue
+         generic_fifo
+         #(
+            .DATA_WIDTH(39),
+            .DATA_DEPTH(2)
+         )
+         tcdm_rd_queue_i
+         (
+            .clk          ( clk_i                                                    ),
+            .rst_n        ( rst_ni                                                   ),
+            .test_mode_i  ( test_en_i                                                ),
+
+            .data_i       ( {trans_rd_id_i[i],trans_rd_last_i[i],trans_rd_add_i[i]}  ),
+            .valid_i      ( trans_rd_req_i[i]                                        ),
+            .grant_o      ( trans_rd_gnt_o[i]                                        ),
+
+            .data_o       ( {s_trans_rd_id[i],s_trans_rd_last[i],s_trans_rd_add[i]}  ),
+            .grant_i      ( s_trans_rd_gnt[i]                                        ),
+            .valid_o      ( s_trans_rd_req[i]                                        )
+         ); 
+      end
    endgenerate
+
+
+
+
    
    //**********************************************************
    //*************** TCDM TRANS QUEUE WR **********************
@@ -112,31 +110,27 @@ module axi2mem_tcdm_unit
    generate
       
       for (i=0; i<2; i++)
-	
-	begin : tcdm_wr_queue
-	   
-	   axi2mem_buffer
-	     #(
-	       .DATA_WIDTH(39),
-	       .BUFFER_DEPTH(2)
-	       )
-	   tcdm_wr_queue_i
-	     (
-	      
-	      .clk_i(clk_i),
-	      .rst_ni(rst_ni),
-	      
-	      .data_i({trans_wr_id_i[i],trans_wr_last_i[i],trans_wr_add_i[i]}),
-	      .valid_i(trans_wr_req_i[i]),
-	      .ready_o(trans_wr_gnt_o[i]),
-	      
-	      .data_o({s_trans_wr_id[i],s_trans_wr_last[i],s_trans_wr_add[i]}),
-	      .ready_i(s_trans_wr_gnt[i]),
-	      .valid_o(s_trans_wr_req[i])
-	      
-	      );
-	   
-	end
+      begin : tcdm_wr_queue
+         generic_fifo
+         #(
+            .DATA_WIDTH(39),
+            .DATA_DEPTH(2)
+         )
+         tcdm_wr_queue_i
+         (
+            .clk         ( clk_i                                                    ),
+            .rst_n       ( rst_ni                                                   ),
+            .test_mode_i ( test_en_i                                                ),
+
+            .data_i      ( {trans_wr_id_i[i],trans_wr_last_i[i],trans_wr_add_i[i]}  ),
+            .valid_i     ( trans_wr_req_i[i]                                        ),
+            .grant_o     ( trans_wr_gnt_o[i]                                        ),
+
+            .data_o      ( {s_trans_wr_id[i],s_trans_wr_last[i],s_trans_wr_add[i]}  ),
+            .grant_i     ( s_trans_wr_gnt[i]                                        ),
+            .valid_o     ( s_trans_wr_req[i]                                        )
+         );     
+      end
       
    endgenerate
    
@@ -147,40 +141,41 @@ module axi2mem_tcdm_unit
    generate
       
       for (i=0; i<2; i++)
-	
-	begin : tcdm_if_rd
-	   
-	   axi2mem_tcdm_rd_if tcdm_rd_if_i
-	     (
-	      
-	      .clk_i(clk_i),
-	      .rst_ni(rst_ni),
-	      
-	      .trans_id_i(s_trans_rd_id[i]),
-	      .trans_last_i(s_trans_rd_last[i]),
-	      .trans_add_i(s_trans_rd_add[i]),
-	      .trans_req_i(s_trans_rd_req[i]),
-	      .trans_gnt_o(s_trans_rd_gnt[i]),
-	      
-	      .data_dat_o(data_rd_dat_o[i]),
-	      .data_id_o(s_data_rd_id[i]),
-	      .data_last_o(s_data_rd_last[i]),
-	      .data_req_o(data_rd_req_o[i]),
-	      .data_gnt_i(data_rd_gnt_i[i]),
-	      
-	      .tcdm_req_o(tcdm_req_o[i]),
-	      .tcdm_add_o(tcdm_add_o[i]),
-	      .tcdm_we_o(tcdm_we_o[i]),
-	      .tcdm_wdata_o(tcdm_wdata_o[i]),
-	      .tcdm_be_o(tcdm_be_o[i]),
-	      .tcdm_gnt_i(tcdm_gnt_i[i]),
-	      
-	      .tcdm_r_rdata_i(tcdm_r_rdata_i[i]),
-	      .tcdm_r_valid_i(tcdm_r_valid_i[i])
-	      
-	      );
-	   
-	end
+        
+        begin : tcdm_if_rd
+           
+           axi2mem_tcdm_rd_if tcdm_rd_if_i
+           (
+              
+              .clk_i(clk_i),
+              .rst_ni(rst_ni),
+              .test_en_i(test_en_i),
+              
+              .trans_id_i(s_trans_rd_id[i]),
+              .trans_last_i(s_trans_rd_last[i]),
+              .trans_add_i(s_trans_rd_add[i]),
+              .trans_req_i(s_trans_rd_req[i]),
+              .trans_gnt_o(s_trans_rd_gnt[i]),
+              
+              .data_dat_o(data_rd_dat_o[i]),
+              .data_id_o(s_data_rd_id[i]),
+              .data_last_o(s_data_rd_last[i]),
+              .data_req_o(data_rd_req_o[i]),
+              .data_gnt_i(data_rd_gnt_i[i]),
+              
+              .tcdm_req_o(tcdm_req_o[i]),
+              .tcdm_add_o(tcdm_add_o[i]),
+              .tcdm_we_o(tcdm_we_o[i]),
+              .tcdm_wdata_o(tcdm_wdata_o[i]),
+              .tcdm_be_o(tcdm_be_o[i]),
+              .tcdm_gnt_i(tcdm_gnt_i[i]),
+              
+              .tcdm_r_rdata_i(tcdm_r_rdata_i[i]),
+              .tcdm_r_valid_i(tcdm_r_valid_i[i])
+              
+              );
+           
+        end
       
    endgenerate
 
@@ -193,43 +188,39 @@ module axi2mem_tcdm_unit
    
    generate
       
-      for (i=0; i<2; i++)
-	
-	begin : tcdm_if_wr
-	   
-	   axi2mem_tcdm_wr_if tcdm_wr_if_i
-	     (
-	      
-	      .clk_i(clk_i),
-	      .rst_ni(rst_ni),
-	      
-	      .trans_id_i(s_trans_wr_id[i]),
-	      .trans_last_i(s_trans_wr_last[i]),
-	      .trans_add_i(s_trans_wr_add[i]),
-	      .trans_req_i(s_trans_wr_req[i]),
-	      .trans_gnt_o(s_trans_wr_gnt[i]),
-	      
-	      .synch_req_o(s_synch_wr_req[i]),
-	      .synch_id_o(s_synch_wr_id[i]),
-	      
-	      .data_dat_i(data_wr_dat_i[i]),
-	      .data_strb_i(data_wr_strb_i[i]),
-	      .data_req_o(data_wr_req_o[i]),
-	      .data_gnt_i(data_wr_gnt_i[i]),
-	      
-	      .tcdm_req_o(tcdm_req_o[i+2]),
-	      .tcdm_add_o(tcdm_add_o[i+2]),
-	      .tcdm_we_o(tcdm_we_o[i+2]),
-	      .tcdm_wdata_o(tcdm_wdata_o[i+2]),
-	      .tcdm_be_o(tcdm_be_o[i+2]),
-	      .tcdm_gnt_i(tcdm_gnt_i[i+2]),
-	      
-	      .tcdm_r_rdata_i(tcdm_r_rdata_i[i+2]),
-	      .tcdm_r_valid_i(tcdm_r_valid_i[i+2])
-	      
-	      );
-	   
-	end
+      for (i=0; i<2; i++) 
+      begin : tcdm_if_wr
+           
+           axi2mem_tcdm_wr_if tcdm_wr_if_i
+           (
+              .clk_i(clk_i),
+              .rst_ni(rst_ni),
+              
+              .trans_id_i(s_trans_wr_id[i]),
+              .trans_last_i(s_trans_wr_last[i]),
+              .trans_add_i(s_trans_wr_add[i]),
+              .trans_req_i(s_trans_wr_req[i]),
+              .trans_gnt_o(s_trans_wr_gnt[i]),
+              
+              .synch_req_o(s_synch_wr_req[i]),
+              .synch_id_o(s_synch_wr_id[i]),
+              
+              .data_dat_i(data_wr_dat_i[i]),
+              .data_strb_i(data_wr_strb_i[i]),
+              .data_req_o(data_wr_req_o[i]),
+              .data_gnt_i(data_wr_gnt_i[i]),
+              
+              .tcdm_req_o(tcdm_req_o[i+2]),
+              .tcdm_add_o(tcdm_add_o[i+2]),
+              .tcdm_we_o(tcdm_we_o[i+2]),
+              .tcdm_wdata_o(tcdm_wdata_o[i+2]),
+              .tcdm_be_o(tcdm_be_o[i+2]),
+              .tcdm_gnt_i(tcdm_gnt_i[i+2]),
+              
+              .tcdm_r_rdata_i(tcdm_r_rdata_i[i+2]),
+              .tcdm_r_valid_i(tcdm_r_valid_i[i+2])
+           );
+      end
       
    endgenerate
    
@@ -238,18 +229,17 @@ module axi2mem_tcdm_unit
    //**********************************************************
    
    axi2mem_tcdm_synch axi2mem_tcdm_synch_wr_i
-     (
-      
-      .clk_i(clk_i),
-      .rst_ni(rst_ni),
-      
-      .synch_req_i(s_synch_wr_req),
-      .synch_id_i(s_synch_wr_id),
-      
-      .synch_gnt_i(synch_wr_gnt_i),
-      .synch_req_o(synch_wr_req_o),
-      .synch_id_o(synch_wr_id_o)
-      
-      );
+   (
+      .clk_i        ( clk_i           ),
+      .rst_ni       ( rst_ni          ),
+      .test_en_i    ( test_en_i       ),
+
+      .synch_req_i  ( s_synch_wr_req  ),
+      .synch_id_i   ( s_synch_wr_id   ),
+
+      .synch_gnt_i  ( synch_wr_gnt_i  ),
+      .synch_req_o  ( synch_wr_req_o  ),
+      .synch_id_o   ( synch_wr_id_o   )
+   );
    
 endmodule
