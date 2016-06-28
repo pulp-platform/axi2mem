@@ -30,8 +30,8 @@
 
 module axi2mem_trans_unit
 #(
-    parameter LD_BUFFER_SIZE = 4,
-    parameter ST_BUFFER_SIZE = 4
+    parameter LD_BUFFER_SIZE = 2,
+    parameter ST_BUFFER_SIZE = 2
 )
 (
     input  logic             clk_i,
@@ -84,15 +84,15 @@ module axi2mem_trans_unit
    generic_fifo
    #(
        .DATA_WIDTH(1),
-       .DATA_DEPTH(7)
+       .DATA_DEPTH(LD_BUFFER_SIZE)
    )
    last_buffer_i
    (
       .clk           ( clk_i                  ),
       .rst_n         ( rst_ni                 ),
       .test_mode_i   ( test_en_i              ),
-
-      .data_i        ( {rd_data_push_last_i}  ),
+    
+      .data_i        ( rd_data_push_last_i    ),
       .valid_i       ( rd_data_push_req_i[0]  ),
       .grant_o       (                        ),
 
@@ -114,7 +114,7 @@ module axi2mem_trans_unit
            generic_fifo
            #(
                .DATA_WIDTH(32),
-               .DATA_DEPTH(2)
+               .DATA_DEPTH(LD_BUFFER_SIZE)
            )
            rd_buffer_i
            (
@@ -145,7 +145,7 @@ module axi2mem_trans_unit
            generic_fifo
            #(
                .DATA_WIDTH(36),
-               .DATA_DEPTH(2)
+               .DATA_DEPTH(ST_BUFFER_SIZE)
            )
            wr_buffer_i
            (
