@@ -1,4 +1,16 @@
 ////////////////////////////////////////////////////////////////////////////////
+// Copyright (C) 2017 ETH Zurich, University of Bologna                       //
+// All rights reserved.                                                       //
+//                                                                            //
+// This code is under development and not yet released to the public.         //
+// Until it is released, the code is under the copyright of ETH Zurich        //
+// and the University of Bologna, and may contain unpublished work.           //
+// Any reuse/redistribution should only be under explicit permission.         //
+//                                                                            //
+// Bug fixes and contributions will eventually be released under the          //
+// SolderPad open hardware license and under the copyright of ETH Zurich      //
+// and the University of Bologna.                                             //
+//                                                                            //
 // Company:        Multitherman Laboratory @ DEIS - University of Bologna     //
 //                    Viale Risorgimento 2 40136                              //
 //                    Bologna - fax 0512093785 -                              //
@@ -15,7 +27,7 @@
 // Project Name:   ULPSoC                                                     //
 // Language:       SystemVerilog                                              //
 //                                                                            //
-// Description:    MINI DMA CHANNEL - TCDM INTERFACE                          //
+// Description:    MINI DMA CHANNEL - TCDM INTERFACE                          //    
 //                                                                            //
 //                                                                            //
 // Revision:                                                                  //
