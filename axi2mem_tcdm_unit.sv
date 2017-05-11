@@ -24,6 +24,7 @@ module axi2mem_tcdm_unit
    input  logic [1:0][31:0] trans_rd_add_i,
    input  logic [1:0]       trans_rd_last_i,
    input  logic [1:0]       trans_rd_req_i,
+   input  logic [1:0][3:0]  trans_rd_be_i,
    output logic [1:0]       trans_rd_gnt_o,
    
    // WR CMD INTERFACE
@@ -57,6 +58,7 @@ module axi2mem_tcdm_unit
 );
    
    logic [1:0][31:0]        s_trans_rd_add,s_trans_wr_add;
+   logic [1:0][3:0]         s_trans_rd_be;
    logic [1:0][5:0]         s_trans_rd_id,s_trans_wr_id;
    logic [1:0]              s_trans_rd_req,s_trans_wr_req;
    logic [1:0]              s_trans_rd_gnt,s_trans_wr_gnt;
@@ -79,7 +81,7 @@ module axi2mem_tcdm_unit
       begin : tcdm_rd_queue
          generic_fifo
          #(
-            .DATA_WIDTH(39),
+            .DATA_WIDTH(39+4),
             .DATA_DEPTH(2)
          )
          tcdm_rd_queue_i
@@ -88,11 +90,11 @@ module axi2mem_tcdm_unit
             .rst_n        ( rst_ni                                                   ),
             .test_mode_i  ( test_en_i                                                ),
 
-            .data_i       ( {trans_rd_id_i[i],trans_rd_last_i[i],trans_rd_add_i[i]}  ),
+            .data_i       ( {trans_rd_be_i[i],trans_rd_id_i[i],trans_rd_last_i[i],trans_rd_add_i[i]}  ),
             .valid_i      ( trans_rd_req_i[i]                                        ),
             .grant_o      ( trans_rd_gnt_o[i]                                        ),
 
-            .data_o       ( {s_trans_rd_id[i],s_trans_rd_last[i],s_trans_rd_add[i]}  ),
+            .data_o       ( {s_trans_rd_be[i],s_trans_rd_id[i],s_trans_rd_last[i],s_trans_rd_add[i]}  ),
             .grant_i      ( s_trans_rd_gnt[i]                                        ),
             .valid_o      ( s_trans_rd_req[i]                                        )
          ); 
@@ -146,34 +148,33 @@ module axi2mem_tcdm_unit
            
            axi2mem_tcdm_rd_if tcdm_rd_if_i
            (
+              .clk_i          ( clk_i              ),
+              .rst_ni         ( rst_ni             ),
+              .test_en_i      ( test_en_i          ),
               
-              .clk_i(clk_i),
-              .rst_ni(rst_ni),
-              .test_en_i(test_en_i),
+              .trans_id_i     ( s_trans_rd_id  [i] ),
+              .trans_last_i   ( s_trans_rd_last[i] ),
+              .trans_add_i    ( s_trans_rd_add [i] ),
+              .trans_be_i     ( s_trans_rd_be  [i] ),
+              .trans_req_i    ( s_trans_rd_req [i] ),
+              .trans_gnt_o    ( s_trans_rd_gnt [i] ),
               
-              .trans_id_i(s_trans_rd_id[i]),
-              .trans_last_i(s_trans_rd_last[i]),
-              .trans_add_i(s_trans_rd_add[i]),
-              .trans_req_i(s_trans_rd_req[i]),
-              .trans_gnt_o(s_trans_rd_gnt[i]),
+              .data_dat_o     ( data_rd_dat_o  [i] ),
+              .data_id_o      ( s_data_rd_id   [i] ),
+              .data_last_o    ( s_data_rd_last [i] ),
+              .data_req_o     ( data_rd_req_o  [i] ),
+              .data_gnt_i     ( data_rd_gnt_i  [i] ),
               
-              .data_dat_o(data_rd_dat_o[i]),
-              .data_id_o(s_data_rd_id[i]),
-              .data_last_o(s_data_rd_last[i]),
-              .data_req_o(data_rd_req_o[i]),
-              .data_gnt_i(data_rd_gnt_i[i]),
+              .tcdm_req_o     ( tcdm_req_o     [i] ),
+              .tcdm_add_o     ( tcdm_add_o     [i] ),
+              .tcdm_we_o      ( tcdm_we_o      [i] ),
+              .tcdm_wdata_o   ( tcdm_wdata_o   [i] ),
+              .tcdm_be_o      ( tcdm_be_o      [i] ),
+              .tcdm_gnt_i     ( tcdm_gnt_i     [i] ),
               
-              .tcdm_req_o(tcdm_req_o[i]),
-              .tcdm_add_o(tcdm_add_o[i]),
-              .tcdm_we_o(tcdm_we_o[i]),
-              .tcdm_wdata_o(tcdm_wdata_o[i]),
-              .tcdm_be_o(tcdm_be_o[i]),
-              .tcdm_gnt_i(tcdm_gnt_i[i]),
-              
-              .tcdm_r_rdata_i(tcdm_r_rdata_i[i]),
-              .tcdm_r_valid_i(tcdm_r_valid_i[i])
-              
-              );
+              .tcdm_r_rdata_i ( tcdm_r_rdata_i [i] ),
+              .tcdm_r_valid_i ( tcdm_r_valid_i [i] )
+           );
            
         end
       

@@ -42,10 +42,12 @@ module axi2mem_rd_channel
    // CONTROL SIGNALS
    output logic [1:0][5:0]                trans_id_o,
    output logic [1:0][31:0]               trans_add_o,
+   output logic [1:0][3:0]                trans_be_o,  //Byte enable is used for test and set, to avoid curruption of neighboor locations
    output logic [1:0]                     trans_req_o,
    output logic [1:0]                     trans_last_o,
    input  logic [1:0]                     trans_gnt_i,
 
+   // Data Signals
    input  logic [63:0]                    data_dat_i,
    input  logic [5:0]                     data_id_i,
    input  logic                           data_last_i,
@@ -135,6 +137,17 @@ module axi2mem_rd_channel
         trans_last_o         = '0;
         
         s_start_count        = '0;
+
+        if(axi_slave_ar_size_i == 3'b010) // 32 bit transactions
+        begin : _32_BIT_TRANS_
+          trans_be_o = ( axi_slave_ar_addr_i[2] ) ? 8'hF0 : 8'h0F ;
+        end 
+        else
+        begin : _64_BIT_TRANS_
+          trans_be_o = '1;
+        end
+
+
         
         NS               = TRANS_IDLE;
         

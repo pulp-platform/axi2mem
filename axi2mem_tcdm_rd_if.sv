@@ -39,6 +39,7 @@ module axi2mem_tcdm_rd_if
    input  logic        trans_last_i,
    input  logic [5:0]  trans_id_i,
    input  logic [31:0] trans_add_i,
+   input  logic [3:0]  trans_be_i,
    input  logic        trans_req_i,
    output logic        trans_gnt_o,
 
@@ -120,7 +121,7 @@ module axi2mem_tcdm_rd_if
            if ( trans_req_i == 1'b1 && s_trans_stalled == 1'b0 ) // REQUEST FROM COMMAND QUEUE && RX OPERATION && TX BUFFER AVAILABLE
              begin
                 tcdm_req_o = 1'b1;
-                tcdm_be_o  = '1;
+                tcdm_be_o  = trans_be_i;
                 if ( tcdm_gnt_i == 1'b1 ) // THE TRANSACTION IS GRANTED FROM THE TCDM
                   begin
                      trans_gnt_o  = 1'b1;

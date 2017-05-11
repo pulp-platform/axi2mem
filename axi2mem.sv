@@ -139,6 +139,7 @@ module axi2mem
    logic                              s_b_ready;
    
    logic [1:0]                        s_trans_wr_req,s_trans_rd_req;
+   logic [1:0][3:0]                   s_trans_rd_be;
    logic [1:0][5:0]                   s_trans_wr_id,s_trans_rd_id;
    logic [1:0][31:0]                  s_trans_wr_add,s_trans_rd_add;
    logic [1:0]                        s_trans_wr_last,s_trans_rd_last;
@@ -250,9 +251,10 @@ module axi2mem
       .axi_slave_r_user_o     ( s_r_user            ),
       .axi_slave_r_ready_i    ( s_r_ready           ),
 
-      .trans_req_o            ( s_trans_rd_req      ),
       .trans_id_o             ( s_trans_rd_id       ),
       .trans_add_o            ( s_trans_rd_add      ),
+      .trans_be_o             ( s_trans_rd_be       ),
+      .trans_req_o            ( s_trans_rd_req      ),
       .trans_last_o           ( s_trans_rd_last     ),
       .trans_gnt_i            ( s_trans_rd_gnt      ),
 
@@ -334,6 +336,7 @@ module axi2mem
       .trans_rd_add_i   ( s_trans_rd_add         ),
       .trans_rd_last_i  ( s_trans_rd_last        ),
       .trans_rd_req_i   ( s_trans_rd_req         ),
+      .trans_rd_be_i    ( s_trans_rd_be          ),
       .trans_rd_gnt_o   ( s_trans_rd_gnt         ),
 
       .data_rd_dat_o    ( s_rd_data_push_dat     ),
