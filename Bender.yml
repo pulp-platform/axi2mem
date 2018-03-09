@@ -1,0 +1,17 @@
+package:
+  name: axi2mem
+
+dependencies:
+  common_cells: { git: "git@iis-git.ee.ethz.ch:sasa/common_cells.git", version: 1.2.2 }
+  axi_slice: { git: "git@iis-git.ee.ethz.ch:sasa/axi_slice.git", version: 1.1.2 }
+
+sources:
+  - axi2mem_busy_unit.sv
+  - axi2mem_rd_channel.sv
+  - axi2mem.sv
+  - axi2mem_tcdm_rd_if.sv
+  - axi2mem_tcdm_synch.sv
+  - axi2mem_tcdm_unit.sv
+  - axi2mem_tcdm_wr_if.sv
+  - axi2mem_trans_unit.sv
+  - axi2mem_wr_channel.sv
