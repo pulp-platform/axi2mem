@@ -3,7 +3,7 @@ package:
 
 dependencies:
   common_cells: { git: "https://github.com/pulp-platform/common_cells.git", version: 1.2.2 }
-  axi_slice: { git: "https://github.com/pulp-platform/axi_slice.git", version: 1.1.2 }
+  axi_slice: { git: "https://github.com/pulp-platform/axi_slice.git", rev: atomics }
 
 sources:
   - axi2mem_busy_unit.sv
