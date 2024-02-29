@@ -2,8 +2,7 @@ package:
   name: axi2mem
 
 dependencies:
-  common_cells: { git: "git@github.com:pulp-platform/common_cells.git", version: 1.13.1 }
-  axi_slice: { git: "git@github.com:pulp-platform/axi_slice.git", version: 1.1.4 }
+  common_cells: { git: "https://github.com/pulp-platform/common_cells.git", version: 1.21.1 }
 
 sources:
   - axi2mem_busy_unit.sv
